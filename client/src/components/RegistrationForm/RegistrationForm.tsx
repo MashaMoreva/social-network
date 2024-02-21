@@ -1,15 +1,25 @@
-import { FC, FormEventHandler, useState } from 'react';
-
-import { FormField } from '../FormField';
-import { Button } from '../Button';
-import './RegistrationForm.css';
+import { FC, FormEventHandler, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { FormField } from "../FormField";
+import { Button } from "../Button";
+import "./RegistrationForm.css";
+import { queryClient } from "../../api/queryClient";
+import { registerUser } from "../../api/User";
 
 export const RegistrationForm: FC = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const registerMutation = useMutation(
+    {
+      mutationFn: () => registerUser(username, password),
+    },
+    queryClient
+  );
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+    registerMutation.mutate();
   };
 
   return (
@@ -32,7 +42,13 @@ export const RegistrationForm: FC = () => {
         />
       </FormField>
 
-      <Button type="submit" title="Зарегистрироваться" />
+      {registerMutation.error && <span>{registerMutation.error.message}</span>}
+
+      <Button
+        type="submit"
+        title="Зарегистрироваться"
+        isLoading={registerMutation.isPending}
+      />
     </form>
   );
 };
